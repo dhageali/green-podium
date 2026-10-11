@@ -1,0 +1,58 @@
+{
+  "title": "Technical Institute",
+  "month": "October 2026",
+  "perWeek": 12,
+  "weekLabels": [
+    "Oct 5–9",
+    "Oct 12–16",
+    "Oct 19–23",
+    "Oct 26–30"
+  ],
+  "classes": [
+    {
+      "name": "BT3-IT",
+      "scores": [
+        12,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "BT2-IT",
+      "scores": [
+        11,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "BT2-ID",
+      "scores": [
+        11,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "BT1-IT",
+      "scores": [
+        10,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "BT1-ID",
+      "scores": [
+        10,
+        null,
+        null,
+        null
+      ]
+    }
+  ]
+}

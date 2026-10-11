@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Green Podium</title>
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;600;700&display=swap">
+<style>
+body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+
+/* Layout: one column — logo header, podium (2-1-3), month progress, Leaf Meter, week-by-week table, owner editor */
+:root{
+  --bg:#f3f7f2; --surface:#ffffff; --ink:#15301f; --muted:#5b6f60; --line:#d7e3d6;
+  --leaf:#294f2c; --leaf-soft:#e1ecdf; --track:#e6eee5;
+  --gold:#f9b61c; --silver:#8e9aa3; --bronze:#b06a3b;
+  --display:"Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1a13; --surface:#16251b; --ink:#e4efe5; --muted:#9fb3a4; --line:#2a3d30;
+  --leaf:#5cc27c; --leaf-soft:#1f3a28; --track:#223428;
+  --gold:#f9b61c; --silver:#b4c0c8; --bronze:#d48a58; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1a13; --surface:#16251b; --ink:#e4efe5; --muted:#9fb3a4; --line:#2a3d30;
+  --leaf:#5cc27c; --leaf-soft:#1f3a28; --track:#223428;
+  --gold:#f9b61c; --silver:#b4c0c8; --bronze:#d48a58; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:6px}
+.logo{align-self:flex-start;background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:10px}
+.logo img{display:block;width:180px;height:auto}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--leaf);font-weight:700}
+h1{font-family:var(--display);font-size:clamp(30px,6vw,44px);line-height:1.05;margin:0;text-wrap:balance}
+.week{color:var(--muted);margin:0}
+.note{background:var(--leaf-soft);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:14px}
+
+/* Month progress */
+.weeks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.wk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.wk b{font-family:var(--display);font-size:14px}
+.wk span{font-size:12px;color:var(--muted)}
+.wk.done{background:var(--leaf);border-color:var(--leaf)}
+.wk.done b,.wk.done span{color:#fff}
+.wk.final{border-style:dashed;border-color:var(--gold)}
+
+/* Podium */
+.stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:10px}
+.spot{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;text-align:center}
+.medal{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:18px;color:#fff;background:var(--muted)}
+.r1 .medal{background:var(--gold);color:#294f2c}
+.r2 .medal{background:var(--silver)}
+.r3 .medal{background:var(--bronze)}
+.p1 .medal{width:56px;height:56px;font-size:22px}
+.cls{font-family:var(--display);font-weight:700;font-size:clamp(15px,3.6vw,20px);overflow-wrap:anywhere}
+.pts{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.block{width:100%;border-radius:10px 10px 0 0;background:var(--leaf-soft);border:1px solid var(--line);border-bottom:none;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:2px}
+.block .lvl{font-family:var(--display);font-weight:800;font-size:clamp(28px,7vw,40px);color:var(--leaf);line-height:1}
+.block .tag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.p1 .block{height:150px;background:var(--leaf);border-color:var(--leaf)}
+.p1 .block .lvl,.p1 .block .tag{color:#fff}
+.p2 .block{height:110px}
+.p3 .block{height:80px}
+.base{height:8px;background:var(--line);border-radius:4px;margin-top:-10px}
+.empty .block{opacity:.4}
+
+/* Leaf meter */
+section h2{font-family:var(--display);font-size:20px;margin:0 0 4px}
+section .hint{color:var(--muted);margin:0 0 14px;font-size:14px}
+.meter{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.rank{font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.name{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.val{font-variant-numeric:tabular-nums;font-weight:700;color:var(--leaf)}
+.val small{font-weight:400;color:var(--muted)}
+.bar{grid-column:2 / 4;height:10px;background:var(--track);border-radius:6px;overflow:hidden;display:flex}
+.bar span{display:block;height:100%;background:var(--leaf);border-right:2px solid var(--track)}
+.bar span:last-child{border-right:none}
+.gap{grid-column:2 / 4;font-size:12px;color:var(--muted)}
+
+/* Week table */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.pending{color:var(--muted)}
+td.tot{font-weight:700;color:var(--leaf)}
+
+/* Actions + editor */
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+button{font:inherit;font-weight:600;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--leaf);border-color:var(--leaf);color:#fff}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.status{font-size:13px;color:var(--muted);align-self:center}
+.editor{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.editor label{font-size:13px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.editor input{font:inherit;padding:7px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-width:0;width:100%;box-sizing:border-box}
+.editor table input{width:58px;text-align:center}
+.editor td{padding:4px}
+.editor .hint{font-size:13px;color:var(--muted);margin:0}
+footer{color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="application/json" id="gp-state">{"title": "Technical Institute", "month": "October 2026", "perWeek": 12, "weekLabels": ["Oct 5–9", "Oct 12–16", "Oct 19–23", "Oct 26–30"], "classes": [{"name": "BT3-IT", "scores": [12, null, null, null]}, {"name": "BT2-IT", "scores": [11, null, null, null]}, {"name": "BT2-ID", "scores": [11, null, null, null]}, {"name": "BT1-IT", "scores": [10, null, null, null]}, {"name": "BT1-ID", "scores": [10, null, null, null]}]}</script>
+<script>
+(function(){
+const LOGO = 'logo.png';
+let state = JSON.parse(document.getElementById('gp-state').textContent);
+const editing = false, canWrite = false;
+const app = document.getElementById('app');
+const LEAVES = ['Gold Leaf','Silver Leaf','Bronze Leaf'];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const W = () => state.weekLabels.length;
+const has = v => v !== null && v !== '' && v !== undefined;
+const doneWeeks = () => state.weekLabels.map((_,w) => state.classes.some(c => has(c.scores[w]))).lastIndexOf(true) + 1;
+const total = c => c.scores.reduce((a,v) => a + (has(v) ? Number(v) : 0), 0);
+const sorted = () => state.classes.filter(c => c.name.trim()).map(c => ({...c, points: total(c)})).sort((a,b) => b.points - a.points);
+const ranks = l => l.reduce((acc,c,i) => { acc.push(i > 0 && c.points === l[i-1].points ? acc[i-1] : i+1); return acc; }, []);
+const maxSoFar = () => Math.max(1, doneWeeks()) * state.perWeek;
+const maxMonth = () => W() * state.perWeek;
+
+function spot(c, place, rk){
+  if(!c) return `<div class="spot p${place} empty"><div class="medal">${place}</div><div class="cls">—</div><div class="pts">&nbsp;</div><div class="block"><span class="lvl">${place}</span></div></div>`;
+  return `<div class="spot p${place} r${rk}"><div class="medal">${rk}</div><div class="cls">${esc(c.name)}</div><div class="pts">${c.points} / ${maxSoFar()} pts</div><div class="block"><span class="lvl">${rk}</span><span class="tag">${LEAVES[rk-1]||''}</span></div></div>`;
+}
+
+function render(){
+  const list = sorted(), rk = ranks(list), d = doneWeeks(), mm = maxMonth();
+  const leader = list[0] ? list[0].points : 0;
+  const finished = d >= W();
+  const weeks = state.weekLabels.map((lb,i) => `<div class="wk ${i < d ? 'done' : ''} ${i === W()-1 ? 'final' : ''}"><b>Week ${i+1}</b><span>${esc(lb)}</span><span>${i < d ? 'Scored' : (i === W()-1 ? 'Final week · Reveal' : 'Coming up')}</span></div>`).join('');
+  const rows = list.map((c,i) => {
+    const segs = c.scores.map(v => has(v) ? `<span style="width:${Number(v)/mm*100}%" title="${v} pts"></span>` : '').join('');
+    return `<li class="row"><span class="rank">${rk[i]}</span><span class="name">${esc(c.name)}</span><span class="val">${c.points}<small> / ${mm}</small></span><div class="bar">${segs}</div><span class="gap">${c.points < leader ? (leader - c.points) + ' pts behind the leader' : 'Leading the Green Race'}</span></li>`;
+  }).join('');
+  const thead = `<tr><th>Class</th>${state.weekLabels.map((lb,i) => `<th>W${i+1}<br>${esc(lb)}</th>`).join('')}<th>Total</th></tr>`;
+  const tbody = list.map(c => `<tr><td>${esc(c.name)}</td>${c.scores.map(v => has(v) ? `<td>${v}</td>` : `<td class="pending">–</td>`).join('')}<td class="tot">${c.points}</td></tr>`).join('');
+  app.innerHTML = `<div class="wrap">
+  <header><div class="logo"><img src="${LOGO}" alt="Rafic Hariri Technical Institute"></div><span class="eyebrow">Green Podium · Monthly Reveal</span><h1>${finished ? 'Greenest Classroom of ' + esc(state.month.split(' ')[0]) : "Who's leading the Green Race?"}</h1><p class="week">${esc(state.title)} · ${esc(state.month)} · ${d} of ${W()} weeks scored · max ${state.perWeek} pts per week</p></header>
+  <div class="weeks">${weeks}</div>
+  ${finished ? '' : `<div class="note">Standings so far. ${W() - d} week${W() - d === 1 ? '' : 's'} left, with up to ${(W() - d) * state.perWeek} points still to earn. The Greenest Classroom is announced after Week ${W()}.</div>`}
+  <div><div class="stage">${spot(list[1],2,rk[1])}${spot(list[0],1,rk[0])}${spot(list[2],3,rk[2])}</div><div class="base"></div></div>
+  <section><h2>Leaf Meter</h2><p class="hint">Each bar fills toward the month's maximum of ${mm} points. Every segment is one week.</p><ul class="meter">${rows}</ul></section>
+  <section><h2>Week by week</h2><div class="tbl"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div></section>
+  <div class="actions"><button id="copy">Copy for Teams post</button><span class="status" id="status" role="status"></span></div>
+  <footer>RHHS Green App · Greenest Classroom of the Month</footer></div>`;
+  bind();
+}
+
+function teamsText(){
+  const l = sorted(), rk = ranks(l), m = ['🥇','🥈','🥉'], d = doneWeeks(), mm = maxMonth();
+  const lines = l.map((c,i) => rk[i] <= 3 ? `${m[rk[i]-1]} ${LEAVES[rk[i]-1]}: ${c.name} – ${c.points}/${mm} pts` : `${rk[i]}. ${c.name} – ${c.points}/${mm} pts`).join('\n');
+  const end = d >= W() ? `Congratulations to our Greenest Classroom of ${state.month.split(' ')[0]}! 🌍` : `${W() - d} week(s) to go – every point counts. Keep it green!`;
+  return `🌿 Green Podium – ${state.title}\n${state.month} · after Week ${d} of ${W()}\n\n${lines}\n\n${end}`;
+}
+
+function setStatus(t){ const s = document.getElementById('status'); if(s) s.textContent = t; }
+
+function bind(){
+  document.getElementById('copy').onclick = async () => {
+    try { await navigator.clipboard.writeText(teamsText()); setStatus('Copied. Paste it into your Teams post.'); }
+    catch(e){ setStatus('Copy is blocked here.'); }
+  };
+}
+
+fetch('data.json', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(d => { if(d){ state = d; render(); } }).catch(() => {});
+render();
+})();
+</script>
+</body>
+</html>
