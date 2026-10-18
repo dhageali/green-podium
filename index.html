@@ -100,75 +100,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .editor td{padding:4px}
 .editor .hint{font-size:13px;color:var(--muted);margin:0}
 footer{color:var(--muted);font-size:12px;text-align:center}
+.editor h2{font-family:var(--display);font-size:18px;margin:0}
+button:disabled{opacity:.6;cursor:wait}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script type="application/json" id="gp-state">{"title": "Technical Institute", "month": "October 2026", "perWeek": 12, "weekLabels": ["Oct 5–9", "Oct 12–16", "Oct 19–23", "Oct 26–30"], "classes": [{"name": "BT3-IT", "scores": [12, null, null, null]}, {"name": "BT2-IT", "scores": [11, null, null, null]}, {"name": "BT2-ID", "scores": [11, null, null, null]}, {"name": "BT1-IT", "scores": [10, null, null, null]}, {"name": "BT1-ID", "scores": [10, null, null, null]}]}</script>
-<script>
-(function(){
-const LOGO = 'logo.png';
-let state = JSON.parse(document.getElementById('gp-state').textContent);
-const editing = false, canWrite = false;
-const app = document.getElementById('app');
-const LEAVES = ['Gold Leaf','Silver Leaf','Bronze Leaf'];
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const W = () => state.weekLabels.length;
-const has = v => v !== null && v !== '' && v !== undefined;
-const doneWeeks = () => state.weekLabels.map((_,w) => state.classes.some(c => has(c.scores[w]))).lastIndexOf(true) + 1;
-const total = c => c.scores.reduce((a,v) => a + (has(v) ? Number(v) : 0), 0);
-const sorted = () => state.classes.filter(c => c.name.trim()).map(c => ({...c, points: total(c)})).sort((a,b) => b.points - a.points);
-const ranks = l => l.reduce((acc,c,i) => { acc.push(i > 0 && c.points === l[i-1].points ? acc[i-1] : i+1); return acc; }, []);
-const maxSoFar = () => Math.max(1, doneWeeks()) * state.perWeek;
-const maxMonth = () => W() * state.perWeek;
-
-function spot(c, place, rk){
-  if(!c) return `<div class="spot p${place} empty"><div class="medal">${place}</div><div class="cls">—</div><div class="pts">&nbsp;</div><div class="block"><span class="lvl">${place}</span></div></div>`;
-  return `<div class="spot p${place} r${rk}"><div class="medal">${rk}</div><div class="cls">${esc(c.name)}</div><div class="pts">${c.points} / ${maxSoFar()} pts</div><div class="block"><span class="lvl">${rk}</span><span class="tag">${LEAVES[rk-1]||''}</span></div></div>`;
-}
-
-function render(){
-  const list = sorted(), rk = ranks(list), d = doneWeeks(), mm = maxMonth();
-  const leader = list[0] ? list[0].points : 0;
-  const finished = d >= W();
-  const weeks = state.weekLabels.map((lb,i) => `<div class="wk ${i < d ? 'done' : ''} ${i === W()-1 ? 'final' : ''}"><b>Week ${i+1}</b><span>${esc(lb)}</span><span>${i < d ? 'Scored' : (i === W()-1 ? 'Final week · Reveal' : 'Coming up')}</span></div>`).join('');
-  const rows = list.map((c,i) => {
-    const segs = c.scores.map(v => has(v) ? `<span style="width:${Number(v)/mm*100}%" title="${v} pts"></span>` : '').join('');
-    return `<li class="row"><span class="rank">${rk[i]}</span><span class="name">${esc(c.name)}</span><span class="val">${c.points}<small> / ${mm}</small></span><div class="bar">${segs}</div><span class="gap">${c.points < leader ? (leader - c.points) + ' pts behind the leader' : 'Leading the Green Race'}</span></li>`;
-  }).join('');
-  const thead = `<tr><th>Class</th>${state.weekLabels.map((lb,i) => `<th>W${i+1}<br>${esc(lb)}</th>`).join('')}<th>Total</th></tr>`;
-  const tbody = list.map(c => `<tr><td>${esc(c.name)}</td>${c.scores.map(v => has(v) ? `<td>${v}</td>` : `<td class="pending">–</td>`).join('')}<td class="tot">${c.points}</td></tr>`).join('');
-  app.innerHTML = `<div class="wrap">
-  <header><div class="logo"><img src="${LOGO}" alt="Rafic Hariri Technical Institute"></div><span class="eyebrow">Green Podium · Monthly Reveal</span><h1>${finished ? 'Greenest Classroom of ' + esc(state.month.split(' ')[0]) : "Who's leading the Green Race?"}</h1><p class="week">${esc(state.title)} · ${esc(state.month)} · ${d} of ${W()} weeks scored · max ${state.perWeek} pts per week</p></header>
-  <div class="weeks">${weeks}</div>
-  ${finished ? '' : `<div class="note">Standings so far. ${W() - d} week${W() - d === 1 ? '' : 's'} left, with up to ${(W() - d) * state.perWeek} points still to earn. The Greenest Classroom is announced after Week ${W()}.</div>`}
-  <div><div class="stage">${spot(list[1],2,rk[1])}${spot(list[0],1,rk[0])}${spot(list[2],3,rk[2])}</div><div class="base"></div></div>
-  <section><h2>Leaf Meter</h2><p class="hint">Each bar fills toward the month's maximum of ${mm} points. Every segment is one week.</p><ul class="meter">${rows}</ul></section>
-  <section><h2>Week by week</h2><div class="tbl"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div></section>
-  <div class="actions"><button id="copy">Copy for Teams post</button><span class="status" id="status" role="status"></span></div>
-  <footer>RHHS Green App · Greenest Classroom of the Month</footer></div>`;
-  bind();
-}
-
-function teamsText(){
-  const l = sorted(), rk = ranks(l), m = ['🥇','🥈','🥉'], d = doneWeeks(), mm = maxMonth();
-  const lines = l.map((c,i) => rk[i] <= 3 ? `${m[rk[i]-1]} ${LEAVES[rk[i]-1]}: ${c.name} – ${c.points}/${mm} pts` : `${rk[i]}. ${c.name} – ${c.points}/${mm} pts`).join('\n');
-  const end = d >= W() ? `Congratulations to our Greenest Classroom of ${state.month.split(' ')[0]}! 🌍` : `${W() - d} week(s) to go – every point counts. Keep it green!`;
-  return `🌿 Green Podium – ${state.title}\n${state.month} · after Week ${d} of ${W()}\n\n${lines}\n\n${end}`;
-}
-
-function setStatus(t){ const s = document.getElementById('status'); if(s) s.textContent = t; }
-
-function bind(){
-  document.getElementById('copy').onclick = async () => {
-    try { await navigator.clipboard.writeText(teamsText()); setStatus('Copied. Paste it into your Teams post.'); }
-    catch(e){ setStatus('Copy is blocked here.'); }
-  };
-}
-
-fetch('data.json', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).then(d => { if(d){ state = d; render(); } }).catch(() => {});
-render();
-})();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
