@@ -1,6 +1,6 @@
 {
   "title": "Technical Institute",
-  "month": "October 2026",
+  "month": "November 2026",
   "perWeek": 12,
   "weekLabels": [
     "Oct 5–9",
@@ -12,46 +12,46 @@
     {
       "name": "BT3-IT",
       "scores": [
-        12,
-        12,
-        10,
-        11
+        null,
+        null,
+        null,
+        null
       ]
     },
     {
       "name": "BT2-IT",
       "scores": [
-        11,
-        11,
-        11,
-        11
+        null,
+        null,
+        null,
+        null
       ]
     },
     {
       "name": "BT2-ID",
       "scores": [
-        11,
-        11,
-        11,
-        11
+        null,
+        null,
+        null,
+        null
       ]
     },
     {
       "name": "BT1-IT",
       "scores": [
-        10,
-        10,
-        10,
-        10
+        null,
+        null,
+        null,
+        null
       ]
     },
     {
       "name": "BT1-ID",
       "scores": [
-        10,
-        11,
-        12,
-        12
+        null,
+        null,
+        null,
+        null
       ]
     }
   ]
