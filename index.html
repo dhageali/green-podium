@@ -36,7 +36,7 @@ h1{font-family:var(--display);font-size:clamp(30px,6vw,44px);line-height:1.05;ma
 .note{background:var(--leaf-soft);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:14px}
 
 /* Month progress */
-.weeks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
 .wk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .wk b{font-family:var(--display);font-size:14px}
 .wk span{font-size:12px;color:var(--muted)}
@@ -102,6 +102,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 footer{color:var(--muted);font-size:12px;text-align:center}
 .editor h2{font-family:var(--display);font-size:18px;margin:0}
 button:disabled{opacity:.6;cursor:wait}
+.editor textarea{font:inherit;padding:7px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box;resize:vertical}
+.editor hr{border:none;border-top:1px solid var(--line);margin:6px 0;width:100%}
+.pastlist{display:flex;flex-direction:column;gap:8px}
+details.past{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 14px}
+details.past summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+details.past summary span{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+details.past .tbl{margin-top:10px}
+textarea:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 </head>
 <body>

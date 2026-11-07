@@ -24,6 +24,23 @@ const sorted = () => state.classes.filter(c => c.name.trim()).map(c => ({...c, p
 const ranks = l => l.reduce((acc,c,i) => { acc.push(i > 0 && c.points === l[i-1].points ? acc[i-1] : i+1); return acc; }, []);
 const maxSoFar = () => Math.max(1, doneWeeks()) * state.perWeek;
 const maxMonth = () => W() * state.perWeek;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function parseMonth(label){ const [m, y] = String(label).trim().split(/\s+/); const i = MONTHS.findIndex(x => x.toLowerCase() === String(m).toLowerCase()); return i < 0 ? null : {i, y: Number(y) || new Date().getFullYear()}; }
+function nextMonthLabel(label){ const p = parseMonth(label); if(!p) return ''; const i = (p.i + 1) % 12, y = p.y + (p.i === 11 ? 1 : 0); return `${MONTHS[i]} ${y}`; }
+function weekLabelsFor(label){
+  const p = parseMonth(label); if(!p) return [];
+  const out = [], short = MONTHS[p.i].slice(0,3);
+  for(let d = 1; d <= 31; d++){
+    const dt = new Date(p.y, p.i, d); if(dt.getMonth() !== p.i) break;
+    if(dt.getDay() === 1){ const fri = new Date(p.y, p.i, d + 4); if(fri.getMonth() === p.i) out.push(`${short} ${d}–${d + 4}`); }
+  }
+  return out;
+}
+function monthSummary(m){
+  const l = m.classes.map(c => ({name: c.name, scores: c.scores, points: c.scores.reduce((a,v) => a + (has(v) ? Number(v) : 0), 0)})).sort((a,b) => b.points - a.points);
+  const top = l.length ? l[0].points : 0;
+  return {list: l, winners: l.filter(c => c.points === top && top > 0).map(c => c.name), max: m.weekLabels.length * m.perWeek};
+}
 
 /* ---------- Encryption: password -> AES key that unlocks the GitHub key ---------- */
 const enc = new TextEncoder(), dec = new TextDecoder();
@@ -72,10 +89,11 @@ function render(){
   const list = sorted(), rk = ranks(list), d = doneWeeks(), mm = maxMonth();
   const leader = list[0] ? list[0].points : 0;
   const finished = d >= W();
+  const started = leader > 0;
   const weeks = state.weekLabels.map((lb,i) => `<div class="wk ${i < d ? 'done' : ''} ${i === W()-1 ? 'final' : ''}"><b>Week ${i+1}</b><span>${esc(lb)}</span><span>${i < d ? 'Scored' : (i === W()-1 ? 'Final week · Reveal' : 'Coming up')}</span></div>`).join('');
   const rows = list.map((c,i) => {
     const segs = c.scores.map(v => has(v) ? `<span style="width:${Number(v)/mm*100}%" title="${v} pts"></span>` : '').join('');
-    return `<li class="row"><span class="rank">${rk[i]}</span><span class="name">${esc(c.name)}</span><span class="val">${c.points}<small> / ${mm}</small></span><div class="bar">${segs}</div><span class="gap">${c.points < leader ? (leader - c.points) + ' pts behind the leader' : 'Leading the Green Race'}</span></li>`;
+    return `<li class="row"><span class="rank">${started ? rk[i] : '–'}</span><span class="name">${esc(c.name)}</span><span class="val">${c.points}<small> / ${mm}</small></span><div class="bar">${segs}</div><span class="gap">${!started ? 'No points yet' : (c.points < leader ? (leader - c.points) + ' pts behind the leader' : 'Leading the Green Race')}</span></li>`;
   }).join('');
   const thead = `<tr><th>Class</th>${state.weekLabels.map((lb,i) => `<th>W${i+1}<br>${esc(lb)}</th>`).join('')}<th>Total</th></tr>`;
   const tbody = list.map(c => `<tr><td>${esc(c.name)}</td>${c.scores.map(v => has(v) ? `<td>${v}</td>` : `<td class="pending">–</td>`).join('')}<td class="tot">${c.points}</td></tr>`).join('');
@@ -85,14 +103,27 @@ function render(){
   app.innerHTML = `<div class="wrap">
   <header><div class="logo"><img src="${LOGO}" alt="Rafic Hariri Technical Institute"></div><span class="eyebrow">Green Podium · Monthly Reveal</span><h1>${finished ? 'Greenest Classroom of ' + esc(state.month.split(' ')[0]) : "Who's leading the Green Race?"}</h1><p class="week">${esc(state.title)} · ${esc(state.month)} · ${d} of ${W()} weeks scored · max ${state.perWeek} pts per week</p></header>
   <div class="weeks">${weeks}</div>
-  ${finished ? '' : `<div class="note">Standings so far. ${W() - d} week${W() - d === 1 ? '' : 's'} left, with up to ${(W() - d) * state.perWeek} points still to earn. The Greenest Classroom is announced after Week ${W()}.</div>`}
-  <div><div class="stage">${spot(list[1],2,rk[1])}${spot(list[0],1,rk[0])}${spot(list[2],3,rk[2])}</div><div class="base"></div></div>
+  ${finished ? '' : !started ? `<div class="note">${esc(state.month.split(' ')[0])} has started. Up to ${mm} points to earn over ${W()} weeks. The podium fills in after Week 1 is scored.</div>` : `<div class="note">Standings so far. ${W() - d} week${W() - d === 1 ? '' : 's'} left, with up to ${(W() - d) * state.perWeek} points still to earn. The Greenest Classroom is announced after Week ${W()}.</div>`}
+  <div><div class="stage">${started ? spot(list[1],2,rk[1]) + spot(list[0],1,rk[0]) + spot(list[2],3,rk[2]) : spot(null,2) + spot(null,1) + spot(null,3)}</div><div class="base"></div></div>
   <section><h2>Leaf Meter</h2><p class="hint">Each bar fills toward the month's maximum of ${mm} points. Every segment is one week.</p><ul class="meter">${rows}</ul></section>
   <section><h2>Week by week</h2><div class="tbl"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div></section>
+  ${pastMonths()}
   <div class="actions"><button id="copy">Copy for Teams post</button>${ctrl}<span class="status" id="status" role="status">${esc(msg)}</span></div>
   ${panel()}
   <footer>RHHS Green App · Greenest Classroom of the Month</footer></div>`;
   bind();
+}
+
+function pastMonths(){
+  const arc = state.archive || [];
+  if(!arc.length) return '';
+  const items = arc.slice().reverse().map(m => {
+    const s = monthSummary(m);
+    const head = `<tr><th>Class</th>${m.weekLabels.map((lb,i) => `<th>W${i+1}<br>${esc(lb)}</th>`).join('')}<th>Total</th></tr>`;
+    const body = s.list.map(c => `<tr><td>${esc(c.name)}</td>${c.scores.map(v => `<td>${has(v) ? v : '–'}</td>`).join('')}<td class="tot">${c.points}</td></tr>`).join('');
+    return `<details class="past"><summary><b>${esc(m.month)}</b> · 🏆 ${s.winners.length ? esc(s.winners.join(' & ')) : '—'} <span>${s.list[0] ? s.list[0].points : 0} / ${s.max} pts</span></summary><div class="tbl"><table><thead>${head}</thead><tbody>${body}</tbody></table></div></details>`;
+  }).join('');
+  return `<section><h2>Past months</h2><p class="hint">Greenest Classroom of each finished month. Open a month to see its full scores.</p><div class="pastlist">${items}</div></section>`;
 }
 
 function panel(){
@@ -113,7 +144,13 @@ function panel(){
     return `<div class="editor"><h2>Update standings</h2><label for="e-month">Month<input id="e-month" value="${esc(state.month)}"></label>
     <p class="hint">Enter each week's points (0–${state.perWeek}). Leave future weeks empty.</p>
     <div class="tbl"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>
-    <div class="actions"><button id="save" class="primary">Publish standings</button><button id="cancel">Cancel</button></div></div>`;
+    <div class="actions"><button id="save" class="primary">Publish standings</button><button id="cancel">Cancel</button></div>
+    <hr>
+    <h2>Start a new month</h2>
+    <p class="hint">Saves ${esc(state.month)} to Past months with its winner, then starts the next month with empty scores for the same classes. Check the week dates and remove any holiday week.</p>
+    <label for="nm-month">New month<input id="nm-month" value="${esc(nextMonthLabel(state.month))}"></label>
+    <label for="nm-weeks">Week dates (one week per line)<textarea id="nm-weeks" rows="5">${esc(weekLabelsFor(nextMonthLabel(state.month)).join('\n'))}</textarea></label>
+    <div class="actions"><button id="newmonth" class="primary">Save ${esc(state.month.split(' ')[0])} and start new month</button></div></div>`;
   }
   return '';
 }
@@ -168,18 +205,36 @@ function bind(){
     }
   };
 
-  const sv = document.getElementById('save');
-  if(sv) sv.onclick = async () => {
-    readEditor(); sv.disabled = true; setStatus('Publishing…');
+  async function publish(btn, message, done){
+    btn.disabled = true; setStatus('Publishing…');
     try {
-      await saveFile('data.json', JSON.stringify(state, null, 2) + '\n', `Update standings – ${state.month}, week ${doneWeeks()}`);
+      await saveFile('data.json', JSON.stringify(state, null, 2) + '\n', message);
       saved = JSON.stringify(state); token = null;
-      go('view', 'Published and locked. Everyone sees the new standings within a few minutes.');
+      go('view', done);
     } catch(err){
-      sv.disabled = false;
+      btn.disabled = false; state = JSON.parse(saved); 
       setStatus(err.message === 'auth' ? 'GitHub refused the access key. It may have expired. Run setup again with a new key.' : 'Could not publish. Check your connection and try again.');
       if(err.message === 'auth'){ config = null; }
     }
+  }
+
+  const sv = document.getElementById('save');
+  if(sv) sv.onclick = () => { readEditor(); publish(sv, `Update standings – ${state.month}, week ${doneWeeks()}`, 'Published and locked. Everyone sees the new standings within a few minutes.'); };
+
+  const nm = document.getElementById('newmonth');
+  if(nm) nm.onclick = () => {
+    const month = document.getElementById('nm-month').value.trim();
+    const labels = document.getElementById('nm-weeks').value.split('\n').map(x => x.trim()).filter(Boolean);
+    if(!month){ setStatus('Enter the new month, for example November 2026.'); return; }
+    if(!labels.length){ setStatus('Enter at least one week date.'); return; }
+    if((state.archive || []).some(m => m.month === month) || month === state.month){ setStatus(`${month} already exists. Enter a different month.`); return; }
+    if(nm.dataset.confirm !== '1'){ nm.dataset.confirm = '1'; nm.textContent = `Confirm: archive ${state.month} and start ${month}`; setStatus('Select the button again to confirm.'); return; }
+    readEditor();
+    const prev = state.month;
+    state.archive = [...(state.archive || []), {month: state.month, perWeek: state.perWeek, weekLabels: state.weekLabels, classes: state.classes}];
+    state.month = month; state.weekLabels = labels;
+    state.classes = state.classes.map(c => ({name: c.name, scores: labels.map(() => null)}));
+    publish(nm, `Archive ${prev} and start ${month}`, `${prev} saved to Past months. ${month} has started.`);
   };
 }
 
